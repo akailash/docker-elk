@@ -15,7 +15,7 @@ services:
       - cluster.name=docker-cluster
       - bootstrap.memory_lock=true
       - xpack.security.enabled=false
-      - "ES_JAVA_OPTS-Xmx512m -Xms512m"
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
     ulimits:
         memlock:
             soft: -1
@@ -26,13 +26,6 @@ services:
     deploy:
         mode: replicated
         replicas: 1
-        resources:
-            limits:
-                cpus: '2'
-                memory: 640M
-            reservations:
-                cpus: '0.5'
-                memory: 512M
     networks:
       - elk
       - monitoring_monitoring
@@ -76,6 +69,8 @@ services:
     environment:
         - LOGSPOUT=ignore
         - ELASTICSEARCH_URL=http://elasticsearch:9200
+        - ES_JAVA_OPTS=-Xmx256m -Xms256m
+        - NODE_OPTIONS=--max-old-space-size=200
     deploy:
         mode: replicated
         replicas: 1
