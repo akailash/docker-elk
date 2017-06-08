@@ -8,8 +8,8 @@ services:
       - /home/ubuntu/docker-elk/elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
       - elasticsearch-data:/usr/share/elasticsearch/data
     ports:
-      - "9200:9200"
-      - "9300:9300"
+      - 9200:9200
+#      - "9300:9300"
     environment:
       - LOGSPOUT=ignore
       - cluster.name=docker-cluster
@@ -32,11 +32,13 @@ services:
 
   logstash:
     image: docker.elastic.co/logstash/logstash:5.4.0
-    volumes:
-      - /home/ubuntu/docker-elk/logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml
-      - /home/ubuntu/docker-elk/logstash/pipeline:/usr/share/logstash/pipeline
+    command: 'logstash -e ''input { udp { port => 5000 codec => json } } output { elasticsearch { hosts => ["elasticsearch:9200"] } stdout { codec => rubydebug } }'''
+#    volumes:
+#      - /home/ubuntu/docker-elk/logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml
+#      - /home/ubuntu/docker-elk/logstash/pipeline:/usr/share/logstash/pipeline
     ports:
-      - "5000:5000"
+      - 5000:5000
+#      - "12345:12345"
     environment:
        DEBUG:                  "${LOGSTASH_DEBUG:-false}"
        LOGSPOUT:               ignore
@@ -60,8 +62,8 @@ services:
 
   kibana:
     image: docker.elastic.co/kibana/kibana:5.4.0
-    volumes:
-      - /home/ubuntu/docker-elk/kibana/config/:/usr/share/kibana/config
+#    volumes:
+#      - /home/ubuntu/docker-elk/kibana/config/:/usr/share/kibana/config
     ports:
       - "5601:5601"
     networks:
@@ -69,7 +71,6 @@ services:
     environment:
         - LOGSPOUT=ignore
         - ELASTICSEARCH_URL=http://elasticsearch:9200
-        - ES_JAVA_OPTS=-Xmx256m -Xms256m
         - NODE_OPTIONS=--max-old-space-size=200
     deploy:
         mode: replicated
@@ -83,16 +84,21 @@ services:
                 memory: 256M
 
   logspout:
+#     image: 'gliderlabs/logspout:latest'
+#     command: '-c ''/bin/logspout syslog://logstash:5000'''
      image: bekt/logspout-logstash:latest
      networks:
          - elk
      volumes:
+#         - /var/run/docker.sock:/tmp/docker.sock
          - /var/run/docker.sock:/var/run/docker.sock
      environment:
          ROUTE_URIS: logstash://logstash:5000
          DOCKER_LABELS: "true"
      deploy:
          mode: global
+         restart_policy: 
+           delay: 5s
          resources:
              limits:
                  cpus: '0.25'
