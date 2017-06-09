@@ -52,6 +52,7 @@ services:
        ELASTICSEARCH_PORT:     ${ELASTICSEARCH_LOGS_PORT:-9200}
     networks:
       - elk
+      - monitoring_monitoring
     deploy:
         mode: replicated
         replicas: 2
@@ -104,6 +105,22 @@ services:
              reservations:
                  cpus: '0.25'
                  memory: 32M
+
+  curator:
+         image: akailash/curator_30d
+         networks:
+             - elk
+         environment:
+             HOST: elasticsearch
+             PORT: 9200
+             COMMAND: "curator --config /etc/curator/config.yml /etc/curator/action_file.yml"
+             PREFIX: logstash-
+             DAYS:    30
+             SCHEDULE: "0 0 0 * * ?"
+         deploy:
+             mode: replicated
+             replicas: 1
+
 
 networks:
   elk:
