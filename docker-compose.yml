@@ -5,11 +5,9 @@ services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:5.4.0
     volumes:
-#      - /home/ubuntu/docker-elk/elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
       - elasticsearch-data:/usr/share/elasticsearch/data
     ports:
       - 9200:9200
-#      - "9300:9300"
     environment:
       - LOGSPOUT=ignore
       - cluster.name=docker-cluster
@@ -128,5 +126,4 @@ networks:
       external: true
 volumes:
     elasticsearch-data:
-        external: true
-
+        driver: "rexray"
